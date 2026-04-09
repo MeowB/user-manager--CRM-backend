@@ -1,5 +1,7 @@
-import router from "../auth/auth.route";
+import { Router } from "express";
 import prisma from "../../lib/prisma";
+
+const router = Router()
 
 router.post('/', async (req, res) => {
 	const {name, email, company} = req.body
@@ -14,3 +16,5 @@ router.post('/', async (req, res) => {
 
 	return res.json(lead)
 })
+
+export default router

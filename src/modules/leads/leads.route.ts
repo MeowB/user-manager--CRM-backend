@@ -1,4 +1,5 @@
 import router from "../auth/auth.route";
+import prisma from "../../lib/prisma";
 
 router.post('/', async (req, res) => {
 	const {name, email, company} = req.body

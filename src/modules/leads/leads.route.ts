@@ -17,4 +17,9 @@ router.post('/', async (req, res) => {
 	return res.json(lead)
 })
 
+router.get("/", async (req, res) => {
+	const leads = await prisma.lead.findMany()
+	return res.json(leads)
+})
+
 export default router

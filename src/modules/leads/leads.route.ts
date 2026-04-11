@@ -22,4 +22,18 @@ router.get("/", async (req, res) => {
 	return res.json(leads)
 })
 
+router.get("/:id", async (req, res) => {
+	const { id } = req.params
+
+	const lead = await prisma.lead.findUnique({
+		where: { id }
+	})
+
+	if (!lead){
+		return res.status(404).json({ message: "Lead not found" })
+	}
+
+	return res.json(lead)
+})
+
 export default router

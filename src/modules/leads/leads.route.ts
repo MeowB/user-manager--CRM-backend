@@ -36,4 +36,25 @@ router.get("/:id", async (req, res) => {
 	return res.json(lead)
 })
 
+router.patch("/:id", async (req, res) => {
+	try {
+		const { id } = req.params
+		const { name, email, company } = req.body
+	
+		const lead = await prisma.lead.update({
+			where: { id },
+			data: {
+				name,
+				email,
+				company
+			}
+		})
+	
+		return res.json(lead)
+
+	} catch(e) {
+		return res.status(404).json({ message: "Lead not found."} )
+	}
+})
+
 export default router

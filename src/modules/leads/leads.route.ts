@@ -1,25 +1,35 @@
 import { Router } from "express";
 import prisma from "../../lib/prisma";
+import { Prisma } from "../../generated/client";
 
 const router = Router()
 
 router.post('/', async (req, res) => {
-	const {name, email, company} = req.body
+	try {
+		const {name, email, company} = req.body
+	
+		const lead = await prisma.lead.create({
+			data: {
+				name,
+				email,
+				company
+			}
+		})
+	
+		return res.json(lead)
 
-	const lead = await prisma.lead.create({
-		data: {
-			name,
-			email,
-			company
-		}
-	})
-
-	return res.json(lead)
+	} catch (e) {
+		return res.status(500).json({ message: "Internal server error" })
+	}
 })
 
 router.get("/", async (req, res) => {
-	const leads = await prisma.lead.findMany()
-	return res.json(leads)
+	try {
+		const leads = await prisma.lead.findMany()
+		return res.json(leads)
+	} catch (e) {
+		return res.status(500).json({ message: "Internal server error" })
+	}
 })
 
 router.get("/:id", async (req, res) => {
@@ -53,7 +63,36 @@ router.patch("/:id", async (req, res) => {
 		return res.json(lead)
 
 	} catch(e) {
-		return res.status(404).json({ message: "Lead not found."} )
+		if (
+			e instanceof Prisma.PrismaClientKnownRequestError &&
+			e.code === "P2025"
+		) {
+			return res.status(404).json({ message: "Lead not found."} )
+		}
+
+		return res.status(500).json({ message: "Internal server error" })
+	}
+})
+
+router.delete("/:id", async (req, res) => {
+	try {
+		const { id } = req.params
+	
+		await prisma.lead.delete({
+			where: { id }
+		})
+	
+		return res.json({ message: "Lead deleted" })
+
+ 	} catch(e) {
+		if (
+			e instanceof Prisma.PrismaClientKnownRequestError &&
+			e.code === "P2025"
+		) {
+			return res.status(404).json({ message: "Lead not found."} )
+		}
+
+		return res.status(500).json({ message: "Internal server error" })
 	}
 })
 

@@ -7,6 +7,6 @@ const router = Router()
 
 router.use('/health', healthRouter)
 router.use('/auth', authRouter)
-router.use('/lead', leadsRouter)
+router.use('/leads', leadsRouter)
 
 export default router

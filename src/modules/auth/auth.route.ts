@@ -1,7 +1,8 @@
 import { Router } from "express";
 import prisma from "../../lib/prisma";
-import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+import bcrypt from "bcrypt"
+import { authMiddleware, AuthRequest } from "../../middleware/authMiddleware";
 
 const router = Router()
 
@@ -24,7 +25,6 @@ router.post("/login", async (req, res) => {
 
 	// Check password
 	const isMatch = await bcrypt.compare(password, user?.password)
-	console.log("PASSWORD MATCH", isMatch)
 
 	if (!isMatch) {
 		return res.status(401).json({ message: "invalid credentials" })
@@ -43,21 +43,24 @@ router.post("/login", async (req, res) => {
 	})
 })
 
-router.get("/me", async (req, res) => {
-	const email = req.headers["x-user-email"] as string
-	if (!email) {
-		return res.status(401).json({ message: "Unauthorize" })
-	}
 
-	const user = await prisma.user.findUnique({
-		where: {email},
-	})
+router.get("/me", authMiddleware, async (req: AuthRequest, res) => {
+  const userId = req.user?.userId
+  if(!userId) {
+    return res.status(401).json({ message: "Unauthorized" })
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId},
+  })
 
 	if (!user) {
 		return res.status(401).json({ message: "Unauthorize"})
 	}
 
-	return res.json(user)
+  const { password, ...safeUser } = user
+
+	return res.json(safeUser)
 })
 
 router.post("/change-password", (req, res) => {

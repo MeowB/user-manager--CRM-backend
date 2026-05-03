@@ -60,4 +60,53 @@ router.post('/', async (req, res) => {
   }
 })
 
+const userRoles = ["admin", "salesAgent", "viewer"]
+const userStatuses = ["active", "disabled"]
+
+router.patch("/:id", async (req, res) => {
+  try {
+    const { role, status } = req.body
+
+    if (role === undefined && status === undefined) {
+      return res.status(400).json({ message: "Missing fields to update" })
+    }
+
+    if (role !== undefined && !userRoles.includes(role)) {
+      return res.status(400).json({ message: "Invalid role" })
+    }
+
+    if (status !== undefined && !userStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status" })
+    }
+
+    const data: Prisma.UserUpdateInput = {}
+
+    if (role !== undefined) {
+      data.role = role
+    }
+
+    if (status !== undefined) {
+      data.status = status
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data,
+      select: userSelect
+    })
+
+    return res.json(user)
+
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2025"
+    ) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
+    return res.status(500).json({ message: "Internal server error" })
+  }
+})
+
 export default router
